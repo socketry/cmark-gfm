@@ -68,6 +68,34 @@ static CMARK_INLINE bool S_is_line_end_char(char c) {
   return (c == '\n' || c == '\r');
 }
 
+// Returns true if block is being finalized on the same line it ends.
+// This happens for:
+// - Document node (special case)
+// - Fenced code blocks (end on the closing fence line)
+// - Setext headings (end on the underline)
+// - HTML block types 1-5 per CommonMark spec §4.6 (end on the line
+//   containing the closing marker)
+// - Any block finalized on the same line it started (e.g., single-line blocks)
+static CMARK_INLINE bool S_ends_on_current_line(cmark_parser *parser, cmark_node *b) {
+  return S_type(b) == CMARK_NODE_DOCUMENT ||
+         (S_type(b) == CMARK_NODE_CODE_BLOCK && b->as.code.fenced) ||
+         (S_type(b) == CMARK_NODE_HEADING && b->as.heading.setext) ||
+         // HTML block types per CommonMark spec §4.6:
+         //   1: <script>, <pre>, <style>, <textarea> (ends at </tag>)
+         //   2: <!-- (ends at -->)
+         //   3: <? (ends at ?>)
+         //   4: <! + letter (ends at >)
+         //   5: <![CDATA[ (ends at ]]>)
+         // All five end on the line containing their closing marker,
+         // similar to fenced code blocks.
+         // Types 6-7 end at a blank line, so their last content line is
+         // the previous line and they should NOT match here.
+         (S_type(b) == CMARK_NODE_HTML_BLOCK && b->as.html_block_type >= 1 &&
+          b->as.html_block_type <= 5) ||
+         // Single-line blocks: finalized on same line they started
+         b->start_line == parser->line_number;
+}
+
 static CMARK_INLINE bool S_is_space_or_tab(char c) {
   return (c == ' ' || c == '\t');
 }
@@ -288,17 +316,15 @@ static cmark_node *finalize(cmark_parser *parser, cmark_node *b) {
   bool has_content;
 
   parent = b->parent;
-  assert(b->flags &
-         CMARK_NODE__OPEN); // shouldn't call finalize on closed blocks
+  assert(b->flags & CMARK_NODE__OPEN); // shouldn't call finalize on closed blocks
   b->flags &= ~CMARK_NODE__OPEN;
 
   if (parser->curline.size == 0) {
-    // end of input - line number has not been incremented
+    // end of input - line number has not been incremented:
     b->end_line = parser->line_number;
     b->end_column = parser->last_line_length;
-  } else if (S_type(b) == CMARK_NODE_DOCUMENT ||
-             (S_type(b) == CMARK_NODE_CODE_BLOCK && b->as.code.fenced) ||
-             (S_type(b) == CMARK_NODE_HEADING && b->as.heading.setext)) {
+  } else if (S_ends_on_current_line(parser, b)) {
+    // Block ends on current line (line_number already incremented):
     b->end_line = parser->line_number;
     b->end_column = parser->curline.size;
     if (b->end_column && parser->curline.ptr[b->end_column - 1] == '\n')
@@ -306,6 +332,7 @@ static cmark_node *finalize(cmark_parser *parser, cmark_node *b) {
     if (b->end_column && parser->curline.ptr[b->end_column - 1] == '\r')
       b->end_column -= 1;
   } else {
+    // Block ended on a previous line:
     b->end_line = parser->line_number - 1;
     b->end_column = parser->last_line_length;
   }
