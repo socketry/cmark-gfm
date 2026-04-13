@@ -1,3 +1,10 @@
+[unreleased]
+
+  * Add `CMARK_OPT_FRONT_MATTER`: parse a "---" delimited block at the start
+    of a document and expose it as a `CMARK_NODE_FRONT_MATTER` node.  An
+    optional info string (e.g. "--- yaml") records the content format;
+    interpretation is left to the caller.
+
 [0.29.0.gfm.13]
   * Normalized marker row vs. delimiter row nomenclature (#273)
   * Exposed CMARK_NODE_FOOTNOTE_DEFINITION literal value (#336)

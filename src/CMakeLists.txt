@@ -39,6 +39,7 @@ set(LIBRARY_SOURCES
   buffer.c
   references.c
   footnotes.c
+  front_matter.c
   map.c
   render.c
   man.c
