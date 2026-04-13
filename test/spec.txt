@@ -9163,7 +9163,7 @@ These are not autolinks:
 ```````````````````````````````` example
 <m:abc>
 .
-<p>&lt;m:abc&gt;</p>
+<m:abc>
 ````````````````````````````````
 
 
