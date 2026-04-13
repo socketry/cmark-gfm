@@ -927,6 +927,69 @@ static void test_md_to_html(test_batch_runner *runner, const char *markdown,
   free(html);
 }
 
+static void test_front_matter(test_batch_runner *runner) {
+#define PARSE(str, opts) \
+  cmark_parse_document(str, sizeof(str) - 1, opts)
+
+  // Without the flag, "---" on line 1 is a thematic break.
+  cmark_node *doc = PARSE("---\ntitle: Hello\n---\n# Body\n", CMARK_OPT_DEFAULT);
+  OK(runner, doc->first_child->type == CMARK_NODE_THEMATIC_BREAK,
+     "no flag: first child is thematic_break");
+  cmark_node_free(doc);
+
+  // With the flag, "---" on line 1 opens a front matter block.
+  doc = PARSE("---\ntitle: Hello\n---\n# Body\n", CMARK_OPT_FRONT_MATTER);
+  cmark_node *fm = doc->first_child;
+  OK(runner, fm != NULL, "front_matter: node exists");
+  INT_EQ(runner, fm->type, CMARK_NODE_FRONT_MATTER,
+         "front_matter: node type");
+  STR_EQ(runner, cmark_node_get_literal(fm), "title: Hello\n",
+         "front_matter: literal content");
+  STR_EQ(runner, cmark_node_get_fence_info(fm), "",
+         "front_matter: empty info string");
+  INT_EQ(runner, cmark_node_get_start_line(fm), 1, "front_matter: start_line");
+  // Remaining Markdown is parsed normally.
+  OK(runner, fm->next != NULL, "front_matter: body follows");
+  INT_EQ(runner, cmark_node_get_type(fm->next), CMARK_NODE_HEADING,
+         "front_matter: next node is heading");
+  cmark_node_free(doc);
+
+  // Info string.
+  doc = PARSE("--- yaml\ntitle: Hello\n---\n", CMARK_OPT_FRONT_MATTER);
+  fm = doc->first_child;
+  STR_EQ(runner, cmark_node_get_fence_info(fm), "yaml",
+         "front_matter: info string");
+  STR_EQ(runner, cmark_node_get_literal(fm), "title: Hello\n",
+         "front_matter: literal with info");
+  cmark_node_free(doc);
+
+  // No closing delimiter: entire document is front matter.
+  doc = PARSE("---\ntitle: Hello\n", CMARK_OPT_FRONT_MATTER);
+  fm = doc->first_child;
+  INT_EQ(runner, fm->type, CMARK_NODE_FRONT_MATTER,
+         "front_matter: no closer - node type");
+  STR_EQ(runner, cmark_node_get_literal(fm), "title: Hello\n",
+         "front_matter: no closer - content");
+  OK(runner, fm->next == NULL, "front_matter: no closer - no other nodes");
+  cmark_node_free(doc);
+
+  // Multi-feed: front matter split across cmark_parser_feed calls.
+  cmark_parser *parser = cmark_parser_new(CMARK_OPT_FRONT_MATTER);
+  cmark_parser_feed(parser, "---\ntitle:", 10);
+  cmark_parser_feed(parser, " Hello\n---\n# Body\n", 18);
+  doc = cmark_parser_finish(parser);
+  cmark_parser_free(parser);
+  fm = doc->first_child;
+  INT_EQ(runner, fm->type, CMARK_NODE_FRONT_MATTER,
+         "front_matter: multi-feed node type");
+  STR_EQ(runner, cmark_node_get_literal(fm), "title: Hello\n",
+         "front_matter: multi-feed content");
+  OK(runner, fm->next != NULL, "front_matter: multi-feed body follows");
+  cmark_node_free(doc);
+
+#undef PARSE
+}
+
 static void test_feed_across_line_ending(test_batch_runner *runner) {
   // See #117
   cmark_parser *parser = cmark_parser_new(CMARK_OPT_DEFAULT);
@@ -1155,6 +1218,7 @@ int main() {
   numeric_entities(runner);
   test_cplusplus(runner);
   test_safe(runner);
+  test_front_matter(runner);
   test_feed_across_line_ending(runner);
   test_pathological_regressions(runner);
   source_pos(runner);
