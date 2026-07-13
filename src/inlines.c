@@ -449,7 +449,9 @@ static cmark_node *handle_backticks(subject *subj, int options) {
     S_normalize_code(&buf);
 
     cmark_node *node = make_code(subj, startpos, endpos - openticks.len - 1, cmark_chunk_buf_detach(&buf));
-    parse_inline_code_info(subj, node);
+    if (options & CMARK_OPT_INLINE_CODE_INFO) {
+      parse_inline_code_info(subj, node);
+    }
     adjust_subj_node_newlines(subj, node, subj->pos - startpos, openticks.len, options);
     return node;
   }

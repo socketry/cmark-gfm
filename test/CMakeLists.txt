@@ -96,6 +96,13 @@ IF (PYTHONINTERP_FOUND)
     "--program" "${CMAKE_CURRENT_BINARY_DIR}/../src/cmark-gfm --full-info-string"
     )
 
+  add_test(option_inline_code_info
+    ${PYTHON_EXECUTABLE}
+    "${CMAKE_CURRENT_SOURCE_DIR}/roundtrip_tests.py"
+    "--spec" "${CMAKE_CURRENT_SOURCE_DIR}/inline-code-info.txt"
+    "--program" "${CMAKE_CURRENT_BINARY_DIR}/../src/cmark-gfm --inline-code-info"
+    )
+
   add_test(regressiontest_executable
     ${PYTHON_EXECUTABLE}
     "${CMAKE_CURRENT_SOURCE_DIR}/spec_tests.py" "--no-normalize" "--spec"
@@ -111,4 +118,3 @@ ELSE(PYTHONINTERP_FOUND)
     echo "Skipping spec tests, because no python 3 interpreter is available.")
 
 ENDIF(PYTHONINTERP_FOUND)
-

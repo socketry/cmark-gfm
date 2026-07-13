@@ -785,6 +785,11 @@ char *cmark_render_latex_with_mem(cmark_node *root, int options, int width, cmar
  */
 #define CMARK_OPT_FRONT_MATTER (1 << 18)
 
+/** Parse inline code info strings, e.g. `code`:ruby or
+ *  `code`:"ruby lineno=5".
+ */
+#define CMARK_OPT_INLINE_CODE_INFO (1 << 19)
+
 /**
  * ## Version information
  */

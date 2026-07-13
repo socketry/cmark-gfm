@@ -11,38 +11,12 @@ line2
 <p>line2</p>
 ````````````````````````````````
 
-Inline code spans may carry unquoted info strings.
+Inline code info strings are not parsed unless explicitly enabled.
 
 ```````````````````````````````` example
 Ruby code: `Object.new`:ruby
 .
-<p>Ruby code: <code class="language-ruby">Object.new</code></p>
-````````````````````````````````
-
-Inline code spans may carry quoted extended info strings.
-
-```````````````````````````````` example
-Ruby code with extended fence info: `Object.new`:"ruby lineno=5"
-.
-<p>Ruby code with extended fence info: <code class="language-ruby">Object.new</code></p>
-````````````````````````````````
-
-Inline code spans may carry empty info strings.
-
-```````````````````````````````` example
-Empty info: `x`:
-.
-<p>Empty info: <code>x</code></p>
-````````````````````````````````
-
-Unterminated quoted inline code info strings stop at the line ending.
-
-```````````````````````````````` example
-Before `x`:"ruby lineno=5
-after
-.
-<p>Before <code class="language-ruby">x</code>
-after</p>
+<p>Ruby code: <code>Object.new</code>:ruby</p>
 ````````````````````````````````
 
 Issue #114: cmark skipping first character in line
