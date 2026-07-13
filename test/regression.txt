@@ -32,7 +32,7 @@ Inline code spans may carry empty info strings.
 ```````````````````````````````` example
 Empty info: `x`:
 .
-<p>Empty info: <code class="language-">x</code></p>
+<p>Empty info: <code>x</code></p>
 ````````````````````````````````
 
 Unterminated quoted inline code info strings stop at the line ending.

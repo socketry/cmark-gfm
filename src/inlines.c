@@ -407,7 +407,6 @@ static void parse_inline_code_info(subject *subj, cmark_node *node) {
   }
 
   advance(subj);
-  node->as.code.has_info = 1;
 
   if (peek_char(subj) == '"') {
     cmark_strbuf buf = CMARK_BUF_INIT(subj->mem);
@@ -427,6 +426,8 @@ static void parse_inline_code_info(subject *subj, cmark_node *node) {
   } else {
     node->as.code.info = take_while(subj, is_inline_code_info_char);
   }
+
+  node->as.code.has_info = node->as.code.info.len > 0;
 }
 
 
