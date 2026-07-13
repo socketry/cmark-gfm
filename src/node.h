@@ -30,6 +30,7 @@ typedef struct {
   uint8_t fence_length;
   uint8_t fence_offset;
   unsigned char fence_char;
+  uint8_t has_info;
   int8_t fenced;
 } cmark_code;
 

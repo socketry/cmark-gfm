@@ -149,12 +149,12 @@ static void free_node_as(cmark_node *node) {
   switch (node->type) {
     case CMARK_NODE_CODE_BLOCK:
     case CMARK_NODE_FRONT_MATTER:
+    case CMARK_NODE_CODE:
     cmark_chunk_free(NODE_MEM(node), &node->as.code.info);
     cmark_chunk_free(NODE_MEM(node), &node->as.code.literal);
       break;
     case CMARK_NODE_TEXT:
     case CMARK_NODE_HTML_INLINE:
-    case CMARK_NODE_CODE:
     case CMARK_NODE_HTML_BLOCK:
     case CMARK_NODE_FOOTNOTE_REFERENCE:
     case CMARK_NODE_FOOTNOTE_DEFINITION:
@@ -378,11 +378,11 @@ const char *cmark_node_get_literal(cmark_node *node) {
   case CMARK_NODE_HTML_BLOCK:
   case CMARK_NODE_TEXT:
   case CMARK_NODE_HTML_INLINE:
-  case CMARK_NODE_CODE:
   case CMARK_NODE_FOOTNOTE_REFERENCE:
   case CMARK_NODE_FOOTNOTE_DEFINITION:
     return cmark_chunk_to_cstr(NODE_MEM(node), &node->as.literal);
 
+  case CMARK_NODE_CODE:
   case CMARK_NODE_CODE_BLOCK:
   case CMARK_NODE_FRONT_MATTER:
     return cmark_chunk_to_cstr(NODE_MEM(node), &node->as.code.literal);
@@ -403,11 +403,11 @@ int cmark_node_set_literal(cmark_node *node, const char *content) {
   case CMARK_NODE_HTML_BLOCK:
   case CMARK_NODE_TEXT:
   case CMARK_NODE_HTML_INLINE:
-  case CMARK_NODE_CODE:
   case CMARK_NODE_FOOTNOTE_REFERENCE:
     cmark_chunk_set_cstr(NODE_MEM(node), &node->as.literal, content);
     return 1;
 
+  case CMARK_NODE_CODE:
   case CMARK_NODE_CODE_BLOCK:
   case CMARK_NODE_FRONT_MATTER:
     cmark_chunk_set_cstr(NODE_MEM(node), &node->as.code.literal, content);
@@ -595,12 +595,13 @@ int cmark_node_set_item_index(cmark_node *node, int idx) {
   }
 }
 
-const char *cmark_node_get_fence_info(cmark_node *node) {
+const char *cmark_node_get_code_info(cmark_node *node) {
   if (node == NULL) {
     return NULL;
   }
 
-  if (node->type == CMARK_NODE_CODE_BLOCK ||
+  if (node->type == CMARK_NODE_CODE ||
+      node->type == CMARK_NODE_CODE_BLOCK ||
       node->type == CMARK_NODE_FRONT_MATTER) {
     return cmark_chunk_to_cstr(NODE_MEM(node), &node->as.code.info);
   } else {
@@ -608,18 +609,28 @@ const char *cmark_node_get_fence_info(cmark_node *node) {
   }
 }
 
-int cmark_node_set_fence_info(cmark_node *node, const char *info) {
+int cmark_node_set_code_info(cmark_node *node, const char *info) {
   if (node == NULL) {
     return 0;
   }
 
-  if (node->type == CMARK_NODE_CODE_BLOCK ||
+  if (node->type == CMARK_NODE_CODE ||
+      node->type == CMARK_NODE_CODE_BLOCK ||
       node->type == CMARK_NODE_FRONT_MATTER) {
     cmark_chunk_set_cstr(NODE_MEM(node), &node->as.code.info, info);
+    node->as.code.has_info = info != NULL;
     return 1;
   } else {
     return 0;
   }
+}
+
+const char *cmark_node_get_fence_info(cmark_node *node) {
+  return cmark_node_get_code_info(node);
+}
+
+int cmark_node_set_fence_info(cmark_node *node, const char *info) {
+  return cmark_node_set_code_info(node, info);
 }
 
 int cmark_node_get_fenced(cmark_node *node, int *length, int *offset, char *character) {

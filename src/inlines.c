@@ -24,7 +24,6 @@ static const char *RIGHTSINGLEQUOTE = "\xE2\x80\x99";
 
 // Macros for creating various kinds of simple.
 #define make_str(subj, sc, ec, s) make_literal(subj, CMARK_NODE_TEXT, sc, ec, s)
-#define make_code(subj, sc, ec, s) make_literal(subj, CMARK_NODE_CODE, sc, ec, s)
 #define make_raw_html(subj, sc, ec, s) make_literal(subj, CMARK_NODE_HTML_INLINE, sc, ec, s)
 #define make_linebreak(mem) make_simple(mem, CMARK_NODE_LINEBREAK)
 #define make_softbreak(mem) make_simple(mem, CMARK_NODE_SOFTBREAK)
@@ -101,6 +100,18 @@ static CMARK_INLINE cmark_node *make_simple(cmark_mem *mem, cmark_node_type t) {
   cmark_node *e = (cmark_node *)mem->calloc(1, sizeof(*e));
   cmark_strbuf_init(mem, &e->content, 0);
   e->type = (uint16_t)t;
+  return e;
+}
+
+static CMARK_INLINE cmark_node *make_code(subject *subj, int start_column,
+                                          int end_column, cmark_chunk literal) {
+  cmark_node *e = (cmark_node *)subj->mem->calloc(1, sizeof(*e));
+  cmark_strbuf_init(subj->mem, &e->content, 0);
+  e->type = CMARK_NODE_CODE;
+  e->as.code.literal = literal;
+  e->start_line = e->end_line = subj->line;
+  e->start_column = start_column + 1 + subj->column_offset + subj->block_offset;
+  e->end_column = end_column + 1 + subj->column_offset + subj->block_offset;
   return e;
 }
 
@@ -385,6 +396,39 @@ static void S_normalize_code(cmark_strbuf *s) {
 
 }
 
+static CMARK_INLINE int is_inline_code_info_char(int c) {
+  return cmark_isalnum(c) || c == '_' || c == '-' || c == '+' || c == '#' ||
+         c == '.';
+}
+
+static void parse_inline_code_info(subject *subj, cmark_node *node) {
+  if (peek_char(subj) != ':') {
+    return;
+  }
+
+  advance(subj);
+  node->as.code.has_info = 1;
+
+  if (peek_char(subj) == '"') {
+    cmark_strbuf buf = CMARK_BUF_INIT(subj->mem);
+    advance(subj);
+
+    while (!is_eof(subj) && peek_char(subj) != '"' &&
+           !S_is_line_end_char(peek_char(subj))) {
+      cmark_strbuf_putc(&buf, peek_char(subj));
+      advance(subj);
+    }
+
+    if (peek_char(subj) == '"') {
+      advance(subj);
+    }
+
+    node->as.code.info = cmark_chunk_buf_detach(&buf);
+  } else {
+    node->as.code.info = take_while(subj, is_inline_code_info_char);
+  }
+}
+
 
 // Parse backtick code section or raw backticks, return an inline.
 // Assumes that the subject has a backtick at the current position.
@@ -404,7 +448,8 @@ static cmark_node *handle_backticks(subject *subj, int options) {
     S_normalize_code(&buf);
 
     cmark_node *node = make_code(subj, startpos, endpos - openticks.len - 1, cmark_chunk_buf_detach(&buf));
-    adjust_subj_node_newlines(subj, node, endpos - startpos, openticks.len, options);
+    parse_inline_code_info(subj, node);
+    adjust_subj_node_newlines(subj, node, subj->pos - startpos, openticks.len, options);
     return node;
   }
 }

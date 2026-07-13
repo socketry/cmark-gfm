@@ -425,6 +425,15 @@ CMARK_GFM_EXPORT int cmark_node_get_item_index(cmark_node *node);
  */
 CMARK_GFM_EXPORT int cmark_node_set_item_index(cmark_node *node, int idx);
 
+/** Returns the info string from a code block or code span.
+ */
+CMARK_GFM_EXPORT const char *cmark_node_get_code_info(cmark_node *node);
+
+/** Sets the info string in a code block or code span, returning 1 on
+ * success and 0 on failure.
+ */
+CMARK_GFM_EXPORT int cmark_node_set_code_info(cmark_node *node, const char *info);
+
 /** Returns the info string from a fenced code block.
  */
 CMARK_GFM_EXPORT const char *cmark_node_get_fence_info(cmark_node *node);

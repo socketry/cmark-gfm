@@ -115,6 +115,16 @@ static int shortest_unused_backtick_sequence(const char *code) {
   return (int)i;
 }
 
+static bool code_info_needs_quotes(const char *info) {
+  while (*info) {
+    if (cmark_isspace((unsigned char)*info)) {
+      return true;
+    }
+    info++;
+  }
+  return false;
+}
+
 static bool is_autolink(cmark_node *node) {
   cmark_chunk *title;
   cmark_chunk *url;
@@ -271,7 +281,7 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
     if (!first_in_list_item) {
       BLANKLINE();
     }
-    info = cmark_node_get_fence_info(node);
+    info = cmark_node_get_code_info(node);
     info_len = strlen(info);
     fencechar[0] = strchr(info, '`') == NULL ? '`' : '~';
     code = cmark_node_get_literal(node);
@@ -375,6 +385,17 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
     }
     for (i = 0; i < numticks; i++) {
       LIT("`");
+    }
+    if (node->as.code.has_info) {
+      info = cmark_node_get_code_info(node);
+      LIT(":");
+      if (code_info_needs_quotes(info)) {
+        LIT("\"");
+        OUT(info, false, LITERAL);
+        LIT("\"");
+      } else {
+        OUT(info, false, LITERAL);
+      }
     }
     break;
 
