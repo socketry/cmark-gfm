@@ -11,6 +11,14 @@ line2
 <p>line2</p>
 ````````````````````````````````
 
+Inline code language prefixes are not parsed unless explicitly enabled.
+
+```````````````````````````````` example
+Ruby code: ruby:`Object.new`
+.
+<p>Ruby code: ruby:<code>Object.new</code></p>
+````````````````````````````````
+
 Issue #114: cmark skipping first character in line
 (Important: the blank lines around "Repeatedly" contain a tab.)
 

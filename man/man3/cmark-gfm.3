@@ -478,6 +478,23 @@ Returns 1 if \f[I]node\f[] is a tight list, 0 otherwise.
 Sets the "tightness" of a list. Returns 1 on success, 0 on failure.
 
 .PP
+\fIconst char *\f[] \fBcmark_node_get_code_info\f[](\fIcmark_node *node\f[])
+
+.PP
+Returns the info string from a code block or the language identifier from
+an inline code span.
+
+.PP
+\fIint\f[] \fBcmark_node_set_code_info\f[](\fIcmark_node *node\f[], \fIconst char *info\f[])
+
+.PP
+Sets the info string in a code block or the language identifier on an
+inline code span, returning 1 on success and 0 on failure. Inline code
+language identifiers must begin with an alphanumeric character and may
+additionally contain \f[C]_\f[], \f[C]-\f[], \f[C]+\f[], \f[C]#\f[],
+and \f[C].\f[].
+
+.PP
 \fIconst char *\f[] \fBcmark_node_get_fence_info\f[](\fIcmark_node *node\f[])
 
 .PP
@@ -1009,6 +1026,18 @@ Use style attributes to align table cells instead of align attributes.
 Include the remainder of the info string in code blocks in a separate
 attribute.
 
+.PP
+.nf
+\fC
+.RS 0n
+#define CMARK_OPT_INLINE_CODE_INFO (1 << 19)
+.RE
+\f[]
+.fi
+
+.PP
+Parse inline code language prefixes, e.g. \f[C]ruby:`code`\f[].
+
 .SS
 Version information
 
@@ -1038,4 +1067,3 @@ CMARK_VERSION_STRING for compile time checks.
 AUTHORS
 .PP
 John MacFarlane, Vicent Marti, Kārlis Gaņģis, Nick Wellnhofer.
-

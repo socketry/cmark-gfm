@@ -1,5 +1,9 @@
 [unreleased]
 
+  * Add `CMARK_OPT_INLINE_CODE_INFO`: parse language-prefixed inline code such
+    as ``ruby:`Object.new``` and render the language as a `language-ruby`
+    class.
+
   * Add `CMARK_OPT_FRONT_MATTER`: parse a "---" delimited block at the start
     of a document and expose it as a `CMARK_NODE_FRONT_MATTER` node.  An
     optional info string (e.g. "--- yaml") records the content format;

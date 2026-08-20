@@ -64,6 +64,7 @@ void print_usage() {
          "                                  instead of align attributes.\n");
   printf("  --full-info-string              Include remainder of code block info\n"
          "                                  string in a separate attribute.\n");
+  printf("  --inline-code-info              Parse inline code language prefixes\n");
   printf("  --help, -h       Print usage information\n");
   printf("  --version        Print version\n");
 }
@@ -165,6 +166,8 @@ int main(int argc, char *argv[]) {
       goto success;
     } else if (strcmp(argv[i], "--full-info-string") == 0) {
       options |= CMARK_OPT_FULL_INFO_STRING;
+    } else if (strcmp(argv[i], "--inline-code-info") == 0) {
+      options |= CMARK_OPT_INLINE_CODE_INFO;
     } else if (strcmp(argv[i], "--table-prefer-style-attributes") == 0) {
       options |= CMARK_OPT_TABLE_PREFER_STYLE_ATTRIBUTES;
     } else if (strcmp(argv[i], "--strikethrough-double-tilde") == 0) {

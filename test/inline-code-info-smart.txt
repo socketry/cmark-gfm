@@ -1,0 +1,14 @@
+### Inline code language prefixes with smart punctuation
+
+Language prefixes containing punctuation are recognized before smart
+punctuation processing.
+
+```````````````````````````````` example
+Objective-C: objective-c:`NSObject`
+Dotted: foo.bar:`value`
+Underscored: foo_bar:`value`
+.
+<p>Objective-C: <code class="language-objective-c">NSObject</code>
+Dotted: <code class="language-foo.bar">value</code>
+Underscored: <code class="language-foo_bar">value</code></p>
+````````````````````````````````

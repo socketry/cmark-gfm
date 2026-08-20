@@ -120,6 +120,7 @@ static void accessors(test_batch_runner *runner) {
   STR_EQ(runner, cmark_node_get_literal(fenced), "fenced\n",
          "get_literal fenced code");
   STR_EQ(runner, cmark_node_get_fence_info(fenced), "lang", "get_fence_info");
+  STR_EQ(runner, cmark_node_get_code_info(fenced), "lang", "get_code_info");
 
   cmark_node *code = cmark_node_next(fenced);
   STR_EQ(runner, cmark_node_get_literal(code), "code\n",
@@ -163,6 +164,8 @@ static void accessors(test_batch_runner *runner) {
   OK(runner, cmark_node_set_literal(fenced, "FENCED\n"),
      "set_literal fenced code");
   OK(runner, cmark_node_set_fence_info(fenced, "LANG"), "set_fence_info");
+  STR_EQ(runner, cmark_node_get_code_info(fenced), "LANG",
+         "get updated code info");
 
   OK(runner, cmark_node_set_literal(html, "<div>HTML</div>\n"),
      "set_literal html");
@@ -239,6 +242,66 @@ static void accessors(test_batch_runner *runner) {
      "set_list_type invalid");
   OK(runner, !cmark_node_set_list_start(bullet_list, -1),
      "set_list_start negative");
+
+  cmark_node_free(doc);
+}
+
+static void inline_code_info(test_batch_runner *runner) {
+  static const char markdown[] = "ruby:`Object.new`";
+  cmark_node *doc = cmark_parse_document(markdown, sizeof(markdown) - 1,
+                                         CMARK_OPT_INLINE_CODE_INFO);
+  cmark_node *paragraph = cmark_node_first_child(doc);
+  cmark_node *code = cmark_node_first_child(paragraph);
+
+  INT_EQ(runner, cmark_node_get_type(code), CMARK_NODE_CODE,
+         "inline code language node type");
+  STR_EQ(runner, cmark_node_get_literal(code), "Object.new",
+         "inline code language literal");
+  STR_EQ(runner, cmark_node_get_code_info(code), "ruby",
+         "get inline code info");
+
+  OK(runner, cmark_node_get_fence_info(code) == NULL,
+     "fence info rejects inline code");
+  OK(runner, !cmark_node_set_fence_info(code, "c++"),
+     "set fence info rejects inline code");
+  OK(runner, cmark_node_get_code_info(paragraph) == NULL,
+     "code info rejects paragraph");
+  OK(runner, !cmark_node_set_code_info(paragraph, "ruby"),
+     "set code info rejects paragraph");
+
+  char *html = cmark_render_html(doc, CMARK_OPT_DEFAULT, NULL);
+  STR_EQ(runner, html,
+         "<p><code class=\"language-ruby\">Object.new</code></p>\n",
+         "render inline code language");
+  free(html);
+
+  char *commonmark = cmark_render_commonmark(doc, CMARK_OPT_DEFAULT, 0);
+  STR_EQ(runner, commonmark, "ruby:`Object.new`\n",
+         "render inline code language as commonmark");
+  free(commonmark);
+
+  OK(runner, !cmark_node_set_code_info(code, "ruby lineno=5"),
+     "reject invalid inline code info");
+  STR_EQ(runner, cmark_node_get_code_info(code), "ruby",
+         "preserve inline code info after invalid set");
+
+  OK(runner, cmark_node_set_code_info(code, "c++"), "set inline code info");
+  STR_EQ(runner, cmark_node_get_code_info(code), "c++",
+         "get updated inline code info");
+
+  OK(runner, cmark_node_set_code_info(code, "a_b-c+#.d"),
+     "set inline code info with all supported punctuation");
+  STR_EQ(runner, cmark_node_get_code_info(code), "a_b-c+#.d",
+         "get inline code info with all supported punctuation");
+
+  OK(runner, cmark_node_set_code_info(code, ""), "clear inline code info");
+  html = cmark_render_html(doc, CMARK_OPT_DEFAULT, NULL);
+  STR_EQ(runner, html, "<p><code>Object.new</code></p>\n",
+         "render inline code without empty language class");
+  free(html);
+
+  OK(runner, cmark_node_set_code_info(code, NULL),
+     "clear inline code info with null");
 
   cmark_node_free(doc);
 }
@@ -1200,6 +1263,7 @@ int main() {
   version(runner);
   constructor(runner);
   accessors(runner);
+  inline_code_info(runner);
   node_check(runner);
   iterator(runner);
   iterator_delete(runner);

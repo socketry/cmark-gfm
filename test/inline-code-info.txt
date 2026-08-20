@@ -1,0 +1,53 @@
+### Inline code language prefixes
+
+Inline code spans may carry language prefixes.
+
+```````````````````````````````` example
+Ruby code: ruby:`Object.new`
+.
+<p>Ruby code: <code class="language-ruby">Object.new</code></p>
+````````````````````````````````
+
+Language prefixes work with longer code span delimiters.
+
+```````````````````````````````` example
+Ruby code: ruby:`` `Object.new` ``
+.
+<p>Ruby code: <code class="language-ruby">`Object.new`</code></p>
+````````````````````````````````
+
+Language identifiers may contain characters used by common language names.
+
+```````````````````````````````` example
+C++ code: c++:`std::vector`
+C# code: c#:`System.Object`
+Objective-C code: objective-c:`NSObject`
+Ruby template: ruby_template:`render`
+.
+<p>C++ code: <code class="language-c++">std::vector</code>
+C# code: <code class="language-c#">System.Object</code>
+Objective-C code: <code class="language-objective-c">NSObject</code>
+Ruby template: <code class="language-ruby_template">render</code></p>
+````````````````````````````````
+
+Ordinary punctuation following inline code is preserved.
+
+```````````````````````````````` example
+Use `x`: then continue.
+.
+<p>Use <code>x</code>: then continue.</p>
+````````````````````````````````
+
+Invalid and empty language prefixes remain literal text.
+
+```````````````````````````````` example
+Empty: :`x`
+Quoted: "ruby":`x`
+Invalid: ruby/:`x`
+Unclosed: ruby:`x
+.
+<p>Empty: :<code>x</code>
+Quoted: &quot;ruby&quot;:<code>x</code>
+Invalid: ruby/:<code>x</code>
+Unclosed: ruby:`x</p>
+````````````````````````````````
