@@ -372,7 +372,6 @@ static cmark_node *finalize(cmark_parser *parser, cmark_node *b) {
       cmark_strbuf_trim(&tmp);
       cmark_strbuf_unescape(&tmp);
       b->as.code.info = cmark_chunk_buf_detach(&tmp);
-      b->as.code.has_info = 1;
 
       if (node_content->ptr[pos] == '\r')
         pos += 1;
@@ -1214,7 +1213,6 @@ static void open_new_blocks(cmark_parser *parser, cmark_node **container,
       (*container)->as.code.fence_offset =
           (int8_t)(parser->first_nonspace - parser->offset);
       (*container)->as.code.info = cmark_chunk_literal("");
-      (*container)->as.code.has_info = 1;
       S_advance_offset(parser, input,
                        parser->first_nonspace + matched - parser->offset,
                        false);

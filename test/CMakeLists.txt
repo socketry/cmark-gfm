@@ -103,6 +103,13 @@ IF (PYTHONINTERP_FOUND)
     "--program" "${CMAKE_CURRENT_BINARY_DIR}/../src/cmark-gfm --inline-code-info"
     )
 
+  add_test(option_inline_code_info_smart
+    ${PYTHON_EXECUTABLE}
+    "${CMAKE_CURRENT_SOURCE_DIR}/roundtrip_tests.py"
+    "--spec" "${CMAKE_CURRENT_SOURCE_DIR}/inline-code-info-smart.txt"
+    "--program" "${CMAKE_CURRENT_BINARY_DIR}/../src/cmark-gfm --inline-code-info --smart"
+    )
+
   add_test(regressiontest_executable
     ${PYTHON_EXECUTABLE}
     "${CMAKE_CURRENT_SOURCE_DIR}/spec_tests.py" "--no-normalize" "--spec"

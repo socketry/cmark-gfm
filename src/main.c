@@ -64,7 +64,7 @@ void print_usage() {
          "                                  instead of align attributes.\n");
   printf("  --full-info-string              Include remainder of code block info\n"
          "                                  string in a separate attribute.\n");
-  printf("  --inline-code-info              Parse inline code info strings\n");
+  printf("  --inline-code-info              Parse inline code language prefixes\n");
   printf("  --help, -h       Print usage information\n");
   printf("  --version        Print version\n");
 }

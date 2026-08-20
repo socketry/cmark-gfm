@@ -345,7 +345,7 @@ static int S_render_node(cmark_html_renderer *renderer, cmark_node *node,
 
   case CMARK_NODE_CODE:
     cmark_strbuf_puts(html, "<code");
-    if (node->as.code.has_info) {
+    if (node->as.code.info.len > 0) {
       render_code_info_attrs(html, &node->as.code.info, options, false);
     }
     cmark_strbuf_putc(html, '>');

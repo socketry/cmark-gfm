@@ -144,7 +144,9 @@ void cmark_node_own(cmark_node *root) {
         break;
       case CMARK_NODE_CODE:
         cmark_chunk_to_cstr(iter->mem, &cur->as.code.literal);
-        cmark_chunk_to_cstr(iter->mem, &cur->as.code.info);
+        if (cur->as.code.info.len > 0) {
+          cmark_chunk_to_cstr(iter->mem, &cur->as.code.info);
+        }
         break;
       case CMARK_NODE_LINK:
         cmark_chunk_to_cstr(iter->mem, &cur->as.link.url);

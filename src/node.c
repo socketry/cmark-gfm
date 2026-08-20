@@ -609,16 +609,41 @@ const char *cmark_node_get_code_info(cmark_node *node) {
   }
 }
 
+static int valid_inline_code_info(const char *info) {
+  if (info == NULL || *info == '\0') {
+    return 1;
+  }
+
+  if (!cmark_isalnum((unsigned char)*info)) {
+    return 0;
+  }
+
+  while (*++info) {
+    unsigned char c = (unsigned char)*info;
+    if (!(cmark_isalnum(c) || c == '_' || c == '-' || c == '+' || c == '#' ||
+          c == '.')) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 int cmark_node_set_code_info(cmark_node *node, const char *info) {
   if (node == NULL) {
     return 0;
   }
 
-  if (node->type == CMARK_NODE_CODE ||
-      node->type == CMARK_NODE_CODE_BLOCK ||
-      node->type == CMARK_NODE_FRONT_MATTER) {
+  if (node->type == CMARK_NODE_CODE) {
+    if (!valid_inline_code_info(info)) {
+      return 0;
+    }
+
     cmark_chunk_set_cstr(NODE_MEM(node), &node->as.code.info, info);
-    node->as.code.has_info = info != NULL;
+    return 1;
+  } else if (node->type == CMARK_NODE_CODE_BLOCK ||
+             node->type == CMARK_NODE_FRONT_MATTER) {
+    cmark_chunk_set_cstr(NODE_MEM(node), &node->as.code.info, info);
     return 1;
   } else {
     return 0;
@@ -626,11 +651,30 @@ int cmark_node_set_code_info(cmark_node *node, const char *info) {
 }
 
 const char *cmark_node_get_fence_info(cmark_node *node) {
-  return cmark_node_get_code_info(node);
+  if (node == NULL) {
+    return NULL;
+  }
+
+  if (node->type == CMARK_NODE_CODE_BLOCK ||
+      node->type == CMARK_NODE_FRONT_MATTER) {
+    return cmark_chunk_to_cstr(NODE_MEM(node), &node->as.code.info);
+  } else {
+    return NULL;
+  }
 }
 
 int cmark_node_set_fence_info(cmark_node *node, const char *info) {
-  return cmark_node_set_code_info(node, info);
+  if (node == NULL) {
+    return 0;
+  }
+
+  if (node->type == CMARK_NODE_CODE_BLOCK ||
+      node->type == CMARK_NODE_FRONT_MATTER) {
+    cmark_chunk_set_cstr(NODE_MEM(node), &node->as.code.info, info);
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 int cmark_node_get_fenced(cmark_node *node, int *length, int *offset, char *character) {
