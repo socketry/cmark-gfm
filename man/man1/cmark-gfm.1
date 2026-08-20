@@ -58,6 +58,10 @@ be rendered as curly quotes, depending on their position.
 \f[C]\-\-\-\f[] will be rendered as an em-dash.
 \f[C]...\f[] will be rendered as ellipses.
 .TP 12n
+.B \-\-inline-code-info
+Parse language prefixes on inline code spans, such as
+\f[C]ruby:`Object.new`\f[], and expose the language identifier as code info.
+.TP 12n
 .B \-\-unsafe
 Render raw HTML and potentially dangerous URLs.
 (Raw HTML is not replaced by a placeholder comment; potentially
