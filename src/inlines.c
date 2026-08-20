@@ -397,8 +397,8 @@ static void S_normalize_code(cmark_strbuf *s) {
 }
 
 static CMARK_INLINE int is_inline_code_info_char(int c) {
-  return cmark_isalnum(c) || c == '_' || c == '-' || c == '+' || c == '#' ||
-         c == '.';
+  return cmark_isalnum((char)c) || c == '_' || c == '-' || c == '+' ||
+         c == '#' || c == '.';
 }
 
 static bufsize_t scan_inline_code_info_prefix(subject *subj, bufsize_t start) {
