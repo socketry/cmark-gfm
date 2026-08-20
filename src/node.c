@@ -614,14 +614,12 @@ static int valid_inline_code_info(const char *info) {
     return 1;
   }
 
-  if (!cmark_isalnum((unsigned char)*info)) {
+  if (!cmark_is_inline_code_info_start_char(*info)) {
     return 0;
   }
 
   while (*++info) {
-    unsigned char c = (unsigned char)*info;
-    if (!(cmark_isalnum(c) || c == '_' || c == '-' || c == '+' || c == '#' ||
-          c == '.')) {
+    if (!cmark_is_inline_code_info_char(*info)) {
       return 0;
     }
   }

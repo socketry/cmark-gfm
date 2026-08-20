@@ -396,20 +396,17 @@ static void S_normalize_code(cmark_strbuf *s) {
 
 }
 
-static CMARK_INLINE int is_inline_code_info_char(int c) {
-  return cmark_isalnum((char)c) || c == '_' || c == '-' || c == '+' ||
-         c == '#' || c == '.';
-}
-
 static bufsize_t scan_inline_code_info_prefix(subject *subj, bufsize_t start) {
-  if (start >= subj->input.len || !cmark_isalnum(subj->input.data[start]) ||
-      (start > 0 && is_inline_code_info_char(subj->input.data[start - 1]))) {
+  if (start >= subj->input.len ||
+      !cmark_is_inline_code_info_start_char((char)subj->input.data[start]) ||
+      (start > 0 && cmark_is_inline_code_info_char(
+                        (char)subj->input.data[start - 1]))) {
     return 0;
   }
 
   bufsize_t pos = start + 1;
-  while (pos < subj->input.len &&
-         is_inline_code_info_char(subj->input.data[pos])) {
+  while (pos < subj->input.len && cmark_is_inline_code_info_char(
+                                      (char)subj->input.data[pos])) {
     pos++;
   }
 

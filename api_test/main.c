@@ -289,6 +289,11 @@ static void inline_code_info(test_batch_runner *runner) {
   STR_EQ(runner, cmark_node_get_code_info(code), "c++",
          "get updated inline code info");
 
+  OK(runner, cmark_node_set_code_info(code, "a_b-c+#.d"),
+     "set inline code info with all supported punctuation");
+  STR_EQ(runner, cmark_node_get_code_info(code), "a_b-c+#.d",
+         "get inline code info with all supported punctuation");
+
   OK(runner, cmark_node_set_code_info(code, ""), "clear inline code info");
   html = cmark_render_html(doc, CMARK_OPT_DEFAULT, NULL);
   STR_EQ(runner, html, "<p><code>Object.new</code></p>\n",
