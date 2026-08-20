@@ -494,10 +494,13 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
 
   case CMARK_NODE_FRONT_MATTER:
     if (entering) {
-      const char *info = cmark_node_get_fence_info(node);
+      const char *front_matter_info = cmark_node_get_fence_info(node);
       BLANKLINE();
       LIT("---");
-      if (info && *info) { LIT(" "); OUT(info, false, LITERAL); }
+      if (front_matter_info && *front_matter_info) {
+        LIT(" ");
+        OUT(front_matter_info, false, LITERAL);
+      }
       LIT("\n");
       OUT(cmark_node_get_literal(node), false, LITERAL);
       LIT("---\n");
