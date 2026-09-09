@@ -1,12 +1,15 @@
-cmark-gfm
-=========
+# CMarkly
 
-![Actions CI](https://github.com/github/cmark-gfm/actions/workflows/ci.yml/badge.svg)
+![Actions CI](https://github.com/socketry/cmarkly/actions/workflows/ci.yml/badge.svg)
 
-`cmark-gfm` is an extended version of the C reference implementation of
-[CommonMark], a rationalized version of Markdown syntax with a spec.  This
-repository adds GitHub Flavored Markdown extensions to
-[the upstream implementation], as defined in [the spec].
+`CMarkly` is [Markly]'s maintained fork of [GitHub's `cmark-gfm`]. It adds
+functionality needed by Markly while remaining based on GitHub's implementation
+of GitHub Flavored Markdown.
+
+The existing `cmark-gfm` C API, headers, command, libraries, and build targets
+retain their original names for compatibility and to keep synchronizing upstream
+changes straightforward. The `CMarkly` repository name distinguishes this
+independently maintained fork from its upstream project.
 
 The rest of the README is preserved as-is from the upstream source.  Note that
 the library and binaries produced by this fork are suffixed with `-gfm` in
@@ -194,6 +197,8 @@ Nick Wellnhofer contributed many improvements, including
 most of the C library's API and its test harness.
 
 [benchmarks]: benchmarks.md
+[Markly]: https://github.com/socketry/markly
+[GitHub's `cmark-gfm`]: https://github.com/github/cmark-gfm
 [the spec]: https://github.github.com/gfm/
 [the upstream implementation]: https://github.com/jgm/cmark
 [CommonMark]: http://commonmark.org
