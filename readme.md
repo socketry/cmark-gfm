@@ -11,6 +11,23 @@ retain their original names for compatibility and to keep synchronizing upstream
 changes straightforward. The `CMarkly` repository name distinguishes this
 independently maintained fork from its upstream project.
 
+## Maintained Differences
+
+Compared with GitHub's `cmark-gfm`, CMarkly:
+
+- Accepts `:` in HTML tag names, supporting XML namespace prefixes such as
+  `<svg:circle>`.
+- Omits the trailing newline when rendering an inline node by itself.
+- Reports accurate end-line source positions for single-line and multi-line HTML
+  blocks.
+- Supports opt-in front matter parsing through `CMARK_OPT_FRONT_MATTER`, exposed
+  as `CMARK_NODE_FRONT_MATTER` nodes.
+- Supports opt-in language prefixes for inline code, such as `` ruby:`Object.new` ``,
+  through `CMARK_OPT_INLINE_CODE_INFO` and the code-info accessors.
+- Provides `cmark_node_clone` for independently cloning complete node trees,
+  including supported extension metadata and footnote relationships. User data
+  is intentionally not copied.
+
 The rest of the README is preserved as-is from the upstream source.  Note that
 the library and binaries produced by this fork are suffixed with `-gfm` in
 order to distinguish them from the upstream.
