@@ -308,9 +308,24 @@ static void inline_code_info(test_batch_runner *runner) {
 
 static void node_clone(test_batch_runner *runner) {
   static const char markdown[] =
-      "## Heading\n\nruby:`Object.new` and [link](url 'title')\n";
+      "## Heading\n\n"
+      "ruby:`Object.new` and [link](url 'title')\n\n"
+      "> Quote with **strong** and *emphasis*.\n\n"
+      "3. Ordered\n"
+      "4. List\n\n"
+      "- Bullet\n\n"
+      "~~~~ ruby lineno=1\n"
+      "puts 'fenced'\n"
+      "~~~~\n\n"
+      "    indented\n\n"
+      "<div>html</div>\n\n"
+      "![alt](image.png 'image title')\n\n"
+      "---\n\n"
+      "Footnote[^note].\n\n"
+      "[^note]: Definition.\n";
   cmark_node *doc = cmark_parse_document(markdown, sizeof(markdown) - 1,
-                                         CMARK_OPT_INLINE_CODE_INFO);
+                                         CMARK_OPT_INLINE_CODE_INFO |
+                                             CMARK_OPT_FOOTNOTES);
   cmark_node *clone = cmark_node_clone(doc);
 
   OK(runner, clone != NULL, "clone a document");
@@ -323,6 +338,57 @@ static void node_clone(test_batch_runner *runner) {
   STR_EQ(runner, cmark_node_get_literal(code), "Object.new",
          "clone inline code literal");
 
+  cmark_node *block_quote = cmark_node_next(paragraph);
+  cmark_node *ordered_list = cmark_node_next(block_quote);
+  INT_EQ(runner, cmark_node_get_list_type(ordered_list), CMARK_ORDERED_LIST,
+         "clone ordered list type");
+  INT_EQ(runner, cmark_node_get_list_start(ordered_list), 3,
+         "clone ordered list start");
+  INT_EQ(runner, cmark_node_get_list_delim(ordered_list), CMARK_PERIOD_DELIM,
+         "clone ordered list delimiter");
+
+  cmark_node *bullet_list = cmark_node_next(ordered_list);
+  INT_EQ(runner, cmark_node_get_list_type(bullet_list), CMARK_BULLET_LIST,
+         "clone bullet list type");
+
+  cmark_node *fenced = cmark_node_next(bullet_list);
+  int fence_length, fence_offset;
+  char fence_character;
+  OK(runner, cmark_node_get_fenced(fenced, &fence_length, &fence_offset,
+                                   &fence_character),
+     "clone fenced code metadata");
+  INT_EQ(runner, fence_length, 4, "clone fence length");
+  INT_EQ(runner, fence_offset, 0, "clone fence offset");
+  INT_EQ(runner, fence_character, '~', "clone fence character");
+  STR_EQ(runner, cmark_node_get_code_info(fenced), "ruby lineno=1",
+         "clone fenced code info");
+
+  char *original_html =
+      cmark_render_html(doc, CMARK_OPT_DEFAULT | CMARK_OPT_UNSAFE, NULL);
+  char *cloned_html =
+      cmark_render_html(clone, CMARK_OPT_DEFAULT | CMARK_OPT_UNSAFE, NULL);
+  STR_EQ(runner, cloned_html, original_html, "clone renders identical HTML");
+  free(cloned_html);
+  free(original_html);
+
+  char *original_commonmark =
+      cmark_render_commonmark(doc, CMARK_OPT_DEFAULT, 0);
+  char *cloned_commonmark =
+      cmark_render_commonmark(clone, CMARK_OPT_DEFAULT, 0);
+  STR_EQ(runner, cloned_commonmark, original_commonmark,
+         "clone renders identical CommonMark");
+  free(cloned_commonmark);
+  free(original_commonmark);
+
+  char *original_xml =
+      cmark_render_xml(doc, CMARK_OPT_DEFAULT | CMARK_OPT_SOURCEPOS);
+  char *cloned_xml =
+      cmark_render_xml(clone, CMARK_OPT_DEFAULT | CMARK_OPT_SOURCEPOS);
+  STR_EQ(runner, cloned_xml, original_xml,
+         "clone preserves source positions");
+  free(cloned_xml);
+  free(original_xml);
+
   cmark_node_set_literal(code, "Class.new");
   cmark_node *original_paragraph = cmark_node_next(cmark_node_first_child(doc));
   cmark_node *original_code = cmark_node_first_child(original_paragraph);
@@ -332,14 +398,16 @@ static void node_clone(test_batch_runner *runner) {
   cmark_node *paragraph_clone = cmark_node_clone(original_paragraph);
   OK(runner, paragraph_clone != NULL, "clone child node");
 
+  char *expected_html =
+      cmark_render_html(clone, CMARK_OPT_DEFAULT | CMARK_OPT_UNSAFE, NULL);
+
   cmark_node_free(doc);
-  char *html = cmark_render_html(clone, CMARK_OPT_DEFAULT, NULL);
-  STR_EQ(runner, html,
-         "<h2>Heading</h2>\n"
-         "<p><code class=\"language-ruby\">Class.new</code> and "
-         "<a href=\"url\" title=\"title\">link</a></p>\n",
+  char *html =
+      cmark_render_html(clone, CMARK_OPT_DEFAULT | CMARK_OPT_UNSAFE, NULL);
+  STR_EQ(runner, html, expected_html,
          "clone remains valid after source is freed");
   free(html);
+  free(expected_html);
   cmark_node_free(clone);
 
   html = cmark_render_html(paragraph_clone, CMARK_OPT_DEFAULT, NULL);
@@ -355,13 +423,30 @@ static void node_clone(test_batch_runner *runner) {
 
 static void node_clone_extensions(test_batch_runner *runner) {
   static const char markdown[] =
-      "| Left | Right |\n| :--- | ---: |\n| A | B |\n";
+      "| Left | Right |\n"
+      "| :--- | ---: |\n"
+      "| A | B |\n\n"
+      "- [x] Complete\n"
+      "- [ ] Pending\n\n"
+      "~deleted~\n\n"
+      "https://example.com\n\n"
+      "<script>alert('filtered')</script>\n";
 
   cmark_gfm_core_extensions_ensure_registered();
-  cmark_syntax_extension *table_extension =
-      cmark_find_syntax_extension("table");
+  const char *extension_names[] = {"table", "tasklist", "strikethrough",
+                                   "autolink", "tagfilter"};
+  const int extension_count =
+      sizeof(extension_names) / sizeof(extension_names[0]);
+  cmark_mem *mem = cmark_get_default_mem_allocator();
+  cmark_llist *extensions = NULL;
   cmark_parser *parser = cmark_parser_new(CMARK_OPT_DEFAULT);
-  cmark_parser_attach_syntax_extension(parser, table_extension);
+  for (int i = 0; i < extension_count; ++i) {
+    cmark_syntax_extension *extension =
+        cmark_find_syntax_extension(extension_names[i]);
+    OK(runner, extension != NULL, "find %s extension", extension_names[i]);
+    cmark_parser_attach_syntax_extension(parser, extension);
+    extensions = cmark_llist_append(mem, extensions, extension);
+  }
   cmark_parser_feed(parser, markdown, sizeof(markdown) - 1);
   cmark_node *doc = cmark_parser_finish(parser);
   cmark_parser_free(parser);
@@ -388,31 +473,28 @@ static void node_clone_extensions(test_batch_runner *runner) {
   OK(runner, cmark_gfm_extensions_get_table_row_is_header(header),
      "clone table header metadata");
 
+  cmark_node *task_list = cmark_node_next(cloned_table);
+  OK(runner,
+     cmark_gfm_extensions_get_tasklist_item_checked(
+         cmark_node_first_child(task_list)),
+     "clone checked task list state");
+  OK(runner,
+     !cmark_gfm_extensions_get_tasklist_item_checked(
+         cmark_node_next(cmark_node_first_child(task_list))),
+     "clone unchecked task list state");
+
+  char *original_html =
+      cmark_render_html(doc, CMARK_OPT_DEFAULT, extensions);
+
   cmark_node_free(doc);
   INT_EQ(runner, cmark_gfm_extensions_get_table_columns(cloned_table), 2,
          "cloned table remains valid after source is freed");
 
-  cmark_mem *mem = cmark_get_default_mem_allocator();
-  cmark_llist *extensions = NULL;
-  extensions = cmark_llist_append(mem, extensions, table_extension);
   char *html = cmark_render_html(clone, CMARK_OPT_DEFAULT, extensions);
-  STR_EQ(runner, html,
-         "<table>\n"
-         "<thead>\n"
-         "<tr>\n"
-         "<th align=\"left\">Left</th>\n"
-         "<th align=\"right\">Right</th>\n"
-         "</tr>\n"
-         "</thead>\n"
-         "<tbody>\n"
-         "<tr>\n"
-         "<td align=\"left\">A</td>\n"
-         "<td align=\"right\">B</td>\n"
-         "</tr>\n"
-         "</tbody>\n"
-         "</table>\n",
-         "render cloned table");
+  STR_EQ(runner, html, original_html,
+         "render cloned extension nodes after source is freed");
   free(html);
+  free(original_html);
   cmark_llist_free(mem, extensions);
   cmark_node_free(clone);
 }
@@ -592,7 +674,16 @@ static void custom_nodes(test_batch_runner *runner) {
          "render_man");
   free(man);
 
+  cmark_node *clone = cmark_node_clone(doc);
+  OK(runner, clone != NULL, "clone custom nodes");
   cmark_node_free(doc);
+
+  html = cmark_render_html(clone, CMARK_OPT_DEFAULT, NULL);
+  STR_EQ(runner, html, "<p><ON ENTER|Hello|ON EXIT></p>\n<on enter|\n",
+         "render cloned custom nodes after source is freed");
+  free(html);
+
+  cmark_node_free(clone);
 }
 
 void hierarchy(test_batch_runner *runner) {
