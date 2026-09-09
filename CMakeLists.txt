@@ -15,8 +15,8 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 option(CMARK_TESTS "Build cmark-gfm tests and enable testing" ON)
-option(CMARK_STATIC "Build static libcmark-gfm library" ON)
-option(CMARK_SHARED "Build shared libcmark-gfm library" ON)
+option(CMARK_STATIC "Build static libcmarkly library" ON)
+option(CMARK_SHARED "Build shared libcmarkly library" ON)
 option(CMARK_LIB_FUZZER "Build libFuzzer fuzzing harness" OFF)
 option(CMARK_FUZZ_QUADRATIC "Build quadratic fuzzing harness" OFF)
 

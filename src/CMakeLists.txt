@@ -4,8 +4,8 @@ endif()
 
 include(GNUInstallDirs)
 
-set(LIBRARY "libcmark-gfm")
-set(STATICLIBRARY "libcmark-gfm_static")
+set(LIBRARY "libcmarkly")
+set(STATICLIBRARY "libcmarkly_static")
 set(HEADERS
   cmark-gfm.h
   cmark-gfm-extension_api.h
@@ -79,9 +79,9 @@ CHECK_FILE_OFFSET_BITS()
 add_executable(${PROGRAM} ${PROGRAM_SOURCES})
 
 if(CMARK_SHARED)
-  target_link_libraries(${PROGRAM} libcmark-gfm-extensions libcmark-gfm)
+  target_link_libraries(${PROGRAM} libcmarkly-extensions libcmarkly)
 elseif(CMARK_STATIC)
-  target_link_libraries(${PROGRAM} libcmark-gfm-extensions_static libcmark-gfm_static)
+  target_link_libraries(${PROGRAM} libcmarkly-extensions_static libcmarkly_static)
 endif()
 
 # Disable the PUBLIC declarations when compiling the executable:
@@ -103,7 +103,7 @@ if (CMARK_SHARED)
   add_library(${LIBRARY} SHARED ${LIBRARY_SOURCES})
   # Include minor version and patch level in soname for now.
   set_target_properties(${LIBRARY} PROPERTIES
-    OUTPUT_NAME "cmark-gfm"
+    OUTPUT_NAME "cmarkly"
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.gfm.${PROJECT_VERSION_GFM}
     VERSION ${PROJECT_VERSION})
 
@@ -111,7 +111,7 @@ if (CMARK_SHARED)
     APPEND PROPERTY MACOSX_RPATH true)
 
   # Avoid name clash between PROGRAM and LIBRARY pdb files.
-  set_target_properties(${LIBRARY} PROPERTIES PDB_NAME cmark-gfm_dll)
+  set_target_properties(${LIBRARY} PROPERTIES PDB_NAME cmarkly_dll)
 
   generate_export_header(${LIBRARY}
     BASE_NAME ${PROJECT_NAME})
@@ -127,11 +127,11 @@ if (CMARK_STATIC)
 
   if (MSVC)
     set_target_properties(${STATICLIBRARY} PROPERTIES
-      OUTPUT_NAME "cmark-gfm_static"
+      OUTPUT_NAME "cmarkly_static"
       VERSION ${PROJECT_VERSION})
   else()
     set_target_properties(${STATICLIBRARY} PROPERTIES
-      OUTPUT_NAME "cmark-gfm"
+      OUTPUT_NAME "cmarkly"
       VERSION ${PROJECT_VERSION})
   endif(MSVC)
 
@@ -156,16 +156,16 @@ endif()
 set(libdir lib${LIB_SUFFIX})
 
 install(TARGETS ${PROGRAM} ${CMARK_INSTALL}
-  EXPORT cmark-gfm
+  EXPORT cmarkly
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION ${libdir}
   ARCHIVE DESTINATION ${libdir}
   )
 
 if(CMARK_SHARED OR CMARK_STATIC)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libcmark-gfm.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/libcmark-gfm.pc @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcmark-gfm.pc
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libcmarkly.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/libcmarkly.pc @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libcmarkly.pc
     DESTINATION ${libdir}/pkgconfig)
 
   install(FILES
@@ -176,7 +176,7 @@ if(CMARK_SHARED OR CMARK_STATIC)
     DESTINATION include
     )
 
-  install(EXPORT cmark-gfm DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
+  install(EXPORT cmarkly DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cmarkly)
 endif()
 
 # Feature tests

@@ -6,10 +6,11 @@
 functionality needed by Markly while remaining based on GitHub's implementation
 of GitHub Flavored Markdown.
 
-The existing `cmark-gfm` C API, headers, command, libraries, and build targets
-retain their original names for compatibility and to keep synchronizing upstream
-changes straightforward. The `CMarkly` repository name distinguishes this
-independently maintained fork from its upstream project.
+The existing `cmark-gfm` C API, headers, and command retain their original names
+for source compatibility and to keep synchronizing upstream changes
+straightforward. The libraries, pkg-config metadata, and CMake targets use the
+`cmarkly` name to distinguish this independently maintained fork from its
+upstream project.
 
 ## Maintained Differences
 
@@ -28,9 +29,9 @@ Compared with GitHub's `cmark-gfm`, CMarkly:
   including supported extension metadata and footnote relationships. User data
   is intentionally not copied.
 
-The rest of the README is preserved as-is from the upstream source.  Note that
-the library and binaries produced by this fork are suffixed with `-gfm` in
-order to distinguish them from the upstream.
+The rest of the README is preserved as-is from the upstream source. References
+to `cmark-gfm` below describe the compatible API, headers, and command inherited
+from upstream.
 
 ---
 

@@ -10,9 +10,9 @@ include_directories(
   ${PROJECT_BINARY_DIR}/extensions
 )
 if(CMARK_SHARED)
-  target_link_libraries(api_test libcmark-gfm-extensions libcmark-gfm)
+  target_link_libraries(api_test libcmarkly-extensions libcmarkly)
 else()
-  target_link_libraries(api_test libcmark-gfm-extensions_static libcmark-gfm_static)
+  target_link_libraries(api_test libcmarkly-extensions_static libcmarkly_static)
 endif()
 
 # Compiler flags
