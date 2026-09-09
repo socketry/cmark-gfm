@@ -306,6 +306,117 @@ static void inline_code_info(test_batch_runner *runner) {
   cmark_node_free(doc);
 }
 
+static void node_clone(test_batch_runner *runner) {
+  static const char markdown[] =
+      "## Heading\n\nruby:`Object.new` and [link](url 'title')\n";
+  cmark_node *doc = cmark_parse_document(markdown, sizeof(markdown) - 1,
+                                         CMARK_OPT_INLINE_CODE_INFO);
+  cmark_node *clone = cmark_node_clone(doc);
+
+  OK(runner, clone != NULL, "clone a document");
+  OK(runner, clone != doc, "clone is independent");
+
+  cmark_node *paragraph = cmark_node_next(cmark_node_first_child(clone));
+  cmark_node *code = cmark_node_first_child(paragraph);
+  STR_EQ(runner, cmark_node_get_code_info(code), "ruby",
+         "clone inline code info");
+  STR_EQ(runner, cmark_node_get_literal(code), "Object.new",
+         "clone inline code literal");
+
+  cmark_node_set_literal(code, "Class.new");
+  cmark_node *original_paragraph = cmark_node_next(cmark_node_first_child(doc));
+  cmark_node *original_code = cmark_node_first_child(original_paragraph);
+  STR_EQ(runner, cmark_node_get_literal(original_code), "Object.new",
+         "mutating clone does not change source");
+
+  cmark_node *paragraph_clone = cmark_node_clone(original_paragraph);
+  OK(runner, paragraph_clone != NULL, "clone child node");
+
+  cmark_node_free(doc);
+  char *html = cmark_render_html(clone, CMARK_OPT_DEFAULT, NULL);
+  STR_EQ(runner, html,
+         "<h2>Heading</h2>\n"
+         "<p><code class=\"language-ruby\">Class.new</code> and "
+         "<a href=\"url\" title=\"title\">link</a></p>\n",
+         "clone remains valid after source is freed");
+  free(html);
+  cmark_node_free(clone);
+
+  html = cmark_render_html(paragraph_clone, CMARK_OPT_DEFAULT, NULL);
+  STR_EQ(runner, html,
+         "<p><code class=\"language-ruby\">Object.new</code> and "
+         "<a href=\"url\" title=\"title\">link</a></p>\n",
+         "render cloned child node");
+  free(html);
+  cmark_node_free(paragraph_clone);
+
+  OK(runner, cmark_node_clone(NULL) == NULL, "cloning null returns null");
+}
+
+static void node_clone_extensions(test_batch_runner *runner) {
+  static const char markdown[] =
+      "| Left | Right |\n| :--- | ---: |\n| A | B |\n";
+
+  cmark_gfm_core_extensions_ensure_registered();
+  cmark_syntax_extension *table_extension =
+      cmark_find_syntax_extension("table");
+  cmark_parser *parser = cmark_parser_new(CMARK_OPT_DEFAULT);
+  cmark_parser_attach_syntax_extension(parser, table_extension);
+  cmark_parser_feed(parser, markdown, sizeof(markdown) - 1);
+  cmark_node *doc = cmark_parser_finish(parser);
+  cmark_parser_free(parser);
+
+  cmark_node *clone = cmark_node_clone(doc);
+  OK(runner, clone != NULL, "clone extension nodes");
+
+  cmark_node *table = cmark_node_first_child(doc);
+  cmark_node *cloned_table = cmark_node_first_child(clone);
+  INT_EQ(runner, cmark_gfm_extensions_get_table_columns(cloned_table), 2,
+         "clone table column count");
+
+  uint8_t *alignments = cmark_gfm_extensions_get_table_alignments(table);
+  uint8_t *cloned_alignments =
+      cmark_gfm_extensions_get_table_alignments(cloned_table);
+  OK(runner, cloned_alignments != alignments,
+     "clone table alignments independently");
+  INT_EQ(runner, cloned_alignments[0], alignments[0],
+         "clone left table alignment");
+  INT_EQ(runner, cloned_alignments[1], alignments[1],
+         "clone right table alignment");
+
+  cmark_node *header = cmark_node_first_child(cloned_table);
+  OK(runner, cmark_gfm_extensions_get_table_row_is_header(header),
+     "clone table header metadata");
+
+  cmark_node_free(doc);
+  INT_EQ(runner, cmark_gfm_extensions_get_table_columns(cloned_table), 2,
+         "cloned table remains valid after source is freed");
+
+  cmark_mem *mem = cmark_get_default_mem_allocator();
+  cmark_llist *extensions = NULL;
+  extensions = cmark_llist_append(mem, extensions, table_extension);
+  char *html = cmark_render_html(clone, CMARK_OPT_DEFAULT, extensions);
+  STR_EQ(runner, html,
+         "<table>\n"
+         "<thead>\n"
+         "<tr>\n"
+         "<th align=\"left\">Left</th>\n"
+         "<th align=\"right\">Right</th>\n"
+         "</tr>\n"
+         "</thead>\n"
+         "<tbody>\n"
+         "<tr>\n"
+         "<td align=\"left\">A</td>\n"
+         "<td align=\"right\">B</td>\n"
+         "</tr>\n"
+         "</tbody>\n"
+         "</table>\n",
+         "render cloned table");
+  free(html);
+  cmark_llist_free(mem, extensions);
+  cmark_node_free(clone);
+}
+
 static void node_check(test_batch_runner *runner) {
   // Construct an incomplete tree.
   cmark_node *doc = cmark_node_new(CMARK_NODE_DOCUMENT);
@@ -1264,6 +1375,8 @@ int main() {
   constructor(runner);
   accessors(runner);
   inline_code_info(runner);
+  node_clone(runner);
+  node_clone_extensions(runner);
   node_check(runner);
   iterator(runner);
   iterator_delete(runner);
