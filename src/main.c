@@ -65,7 +65,7 @@ void print_usage() {
   printf("  --full-info-string              Include remainder of code block info\n"
          "                                  string in a separate attribute.\n");
   printf("  --inline-code-info              Parse inline code language prefixes\n");
-  printf("  --indented-html-blocks          Continue indented HTML across blank lines\n");
+  printf("  --html-block-blank-lines        Continue indented HTML across blank lines\n");
   printf("  --help, -h       Print usage information\n");
   printf("  --version        Print version\n");
 }
@@ -169,8 +169,8 @@ int main(int argc, char *argv[]) {
       options |= CMARK_OPT_FULL_INFO_STRING;
     } else if (strcmp(argv[i], "--inline-code-info") == 0) {
       options |= CMARK_OPT_INLINE_CODE_INFO;
-    } else if (strcmp(argv[i], "--indented-html-blocks") == 0) {
-      options |= CMARK_OPT_INDENTED_HTML_BLOCKS;
+    } else if (strcmp(argv[i], "--html-block-blank-lines") == 0) {
+      options |= CMARK_OPT_HTML_BLOCK_BLANK_LINES;
     } else if (strcmp(argv[i], "--table-prefer-style-attributes") == 0) {
       options |= CMARK_OPT_TABLE_PREFER_STYLE_ATTRIBUTES;
     } else if (strcmp(argv[i], "--strikethrough-double-tilde") == 0) {
