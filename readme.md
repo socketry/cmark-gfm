@@ -1,16 +1,37 @@
-cmark-gfm
-=========
+# CMarkly
 
-![Actions CI](https://github.com/github/cmark-gfm/actions/workflows/ci.yml/badge.svg)
+![Actions CI](https://github.com/socketry/cmarkly/actions/workflows/ci.yml/badge.svg)
 
-`cmark-gfm` is an extended version of the C reference implementation of
-[CommonMark], a rationalized version of Markdown syntax with a spec.  This
-repository adds GitHub Flavored Markdown extensions to
-[the upstream implementation], as defined in [the spec].
+`CMarkly` is [Markly]'s maintained fork of [GitHub's `cmark-gfm`]. It adds
+functionality needed by Markly while remaining based on GitHub's implementation
+of GitHub Flavored Markdown.
 
-The rest of the README is preserved as-is from the upstream source.  Note that
-the library and binaries produced by this fork are suffixed with `-gfm` in
-order to distinguish them from the upstream.
+The existing `cmark-gfm` C API, headers, and command retain their original names
+for source compatibility and to keep synchronizing upstream changes
+straightforward. The libraries, pkg-config metadata, and CMake targets use the
+`cmarkly` name to distinguish this independently maintained fork from its
+upstream project.
+
+## Maintained Differences
+
+Compared with GitHub's `cmark-gfm`, CMarkly:
+
+- Accepts `:` in HTML tag names, supporting XML namespace prefixes such as
+  `<svg:circle>`.
+- Omits the trailing newline when rendering an inline node by itself.
+- Reports accurate end-line source positions for single-line and multi-line HTML
+  blocks.
+- Supports opt-in front matter parsing through `CMARK_OPT_FRONT_MATTER`, exposed
+  as `CMARK_NODE_FRONT_MATTER` nodes.
+- Supports opt-in language prefixes for inline code, such as `` ruby:`Object.new` ``,
+  through `CMARK_OPT_INLINE_CODE_INFO` and the code-info accessors.
+- Provides `cmark_node_clone` for independently cloning complete node trees,
+  including supported extension metadata and footnote relationships. User data
+  is intentionally not copied.
+
+The rest of the README is preserved as-is from the upstream source. References
+to `cmark-gfm` below describe the compatible API, headers, and command inherited
+from upstream.
 
 ---
 
@@ -194,6 +215,8 @@ Nick Wellnhofer contributed many improvements, including
 most of the C library's API and its test harness.
 
 [benchmarks]: benchmarks.md
+[Markly]: https://github.com/socketry/markly
+[GitHub's `cmark-gfm`]: https://github.com/github/cmark-gfm
 [the spec]: https://github.github.com/gfm/
 [the upstream implementation]: https://github.com/jgm/cmark
 [CommonMark]: http://commonmark.org

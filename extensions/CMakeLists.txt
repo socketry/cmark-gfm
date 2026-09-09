@@ -1,5 +1,5 @@
-set(LIBRARY "libcmark-gfm-extensions")
-set(STATICLIBRARY "libcmark-gfm-extensions_static")
+set(LIBRARY "libcmarkly-extensions")
+set(STATICLIBRARY "libcmarkly-extensions_static")
 set(LIBRARY_SOURCES
     core-extensions.c
     table.c
@@ -26,8 +26,7 @@ if (CMARK_SHARED)
   add_library(${LIBRARY} SHARED ${LIBRARY_SOURCES})
 
   set_target_properties(${LIBRARY} PROPERTIES
-    OUTPUT_NAME "cmark-gfm-extensions"
-    DEFINE_SYMBOL "cmark-gfm"
+    OUTPUT_NAME "cmarkly-extensions"
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.gfm.${PROJECT_VERSION_GFM}
     VERSION ${PROJECT_VERSION})
 
@@ -35,10 +34,10 @@ if (CMARK_SHARED)
     APPEND PROPERTY MACOSX_RPATH true)
 
   # Avoid name clash between PROGRAM and LIBRARY pdb files.
-  set_target_properties(${LIBRARY} PROPERTIES PDB_NAME cmark-gfm-extensions_dll)
+  set_target_properties(${LIBRARY} PROPERTIES PDB_NAME cmarkly-extensions_dll)
 
   list(APPEND CMARK_INSTALL ${LIBRARY})
-  target_link_libraries(${LIBRARY} libcmark-gfm)
+  target_link_libraries(${LIBRARY} libcmarkly)
 
 endif()
 
@@ -47,16 +46,15 @@ if (CMARK_STATIC)
 
   set_target_properties(${STATICLIBRARY} PROPERTIES
     COMPILE_FLAGS "-DCMARK_GFM_STATIC_DEFINE -DCMARK_GFM_EXTENSIONS_STATIC_DEFINE"
-    DEFINE_SYMBOL "cmark-gfm"
     POSITION_INDEPENDENT_CODE ON)
 
   if (MSVC)
     set_target_properties(${STATICLIBRARY} PROPERTIES
-      OUTPUT_NAME "cmark-gfm-extensions_static"
+      OUTPUT_NAME "cmarkly-extensions_static"
       VERSION ${PROJECT_VERSION})
   else()
     set_target_properties(${STATICLIBRARY} PROPERTIES
-      OUTPUT_NAME "cmark-gfm-extensions"
+      OUTPUT_NAME "cmarkly-extensions"
       VERSION ${PROJECT_VERSION})
   endif(MSVC)
 
@@ -67,7 +65,7 @@ set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS ON)
 
 include (InstallRequiredSystemLibraries)
 install(TARGETS ${CMARK_INSTALL}
-  EXPORT cmark-gfm-extensions
+  EXPORT cmarkly-extensions
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib${LIB_SUFFIX}
   ARCHIVE DESTINATION lib${LIB_SUFFIX}
@@ -79,7 +77,7 @@ if (CMARK_SHARED OR CMARK_STATIC)
   DESTINATION include
   )
 
-  install(EXPORT cmark-gfm-extensions DESTINATION lib${LIB_SUFFIX}/cmake-gfm-extensions)
+  install(EXPORT cmarkly-extensions DESTINATION lib${LIB_SUFFIX}/cmake/cmarkly-extensions)
 endif()
 
 # Feature tests

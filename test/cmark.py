@@ -93,13 +93,12 @@ class CMark:
             if not library_dir:
                 library_dir = os.path.join("..", "build", "src")
             for prefix, suffix in libnames:
-                candidate = os.path.join(library_dir, prefix + "cmark-gfm" + suffix)
+                candidate = os.path.join(library_dir, prefix + "cmarkly" + suffix)
                 if os.path.isfile(candidate):
                     libpath = candidate
                     break
             cmark = CDLL(libpath)
             extlib = CDLL(os.path.join(
-                library_dir, "..", "extensions", prefix + "cmark-gfm-extensions" + suffix))
+                library_dir, "..", "extensions", prefix + "cmarkly-extensions" + suffix))
             self.to_html = lambda x, exts=[]: to_html(cmark, extlib, x, exts + self.extensions)
             self.to_commonmark = lambda x, exts=[]: to_commonmark(cmark, extlib, x, exts + self.extensions)
-
