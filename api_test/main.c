@@ -1255,6 +1255,104 @@ static void test_front_matter(test_batch_runner *runner) {
 #undef PARSE
 }
 
+static void test_indented_html_blocks(test_batch_runner *runner) {
+#define PARSE(str, opts) cmark_parse_document(str, sizeof(str) - 1, opts)
+
+  static const char nested_html[] =
+      "<div>\n"
+      "\t<p>one</p>\n"
+      "\n"
+      "    <p>two</p>\n"
+      "</div>\n";
+
+  cmark_node *doc = PARSE(nested_html, CMARK_OPT_DEFAULT);
+  cmark_node *html = doc->first_child;
+  INT_EQ(runner, cmark_node_get_type(html), CMARK_NODE_HTML_BLOCK,
+         "indented HTML: default first node is HTML");
+  OK(runner, html->next != NULL,
+     "indented HTML: default parsing ends at the blank line");
+  cmark_node_free(doc);
+
+  doc = PARSE(nested_html, CMARK_OPT_INDENTED_HTML_BLOCKS);
+  html = doc->first_child;
+  INT_EQ(runner, cmark_node_get_type(html), CMARK_NODE_HTML_BLOCK,
+         "indented HTML: flagged node is HTML");
+  STR_EQ(runner, cmark_node_get_literal(html), nested_html,
+         "indented HTML: consistent indentation retains blank lines");
+  OK(runner, html->next == NULL,
+     "indented HTML: consistent content remains one block");
+  cmark_node_free(doc);
+
+  static const char initially_blank[] =
+      "<div>\n"
+      "\n"
+      "\t<p>content</p>\n"
+      "</div>\n";
+
+  doc = PARSE(initially_blank, CMARK_OPT_INDENTED_HTML_BLOCKS);
+  html = doc->first_child;
+  STR_EQ(runner, cmark_node_get_literal(html), initially_blank,
+         "indented HTML: indentation may be established after a blank line");
+  OK(runner, html->next == NULL,
+     "indented HTML: initially blank content remains one block");
+  cmark_node_free(doc);
+
+  static const char dedented[] =
+      "<div>\n"
+      "\tcontent\n"
+      "\n"
+      "outside\n";
+
+  doc = PARSE(dedented, CMARK_OPT_INDENTED_HTML_BLOCKS);
+  html = doc->first_child;
+  STR_EQ(runner, cmark_node_get_literal(html), "<div>\n\tcontent\n\n",
+         "indented HTML: retained blank line belongs to preceding HTML");
+  INT_EQ(runner, cmark_node_get_type(html->next), CMARK_NODE_PARAGRAPH,
+         "indented HTML: dedented content terminates the block");
+  cmark_node_free(doc);
+
+  static const char inconsistent[] =
+      "<div>\n"
+      "\tcontent\n"
+      "\n"
+      "  less indented\n";
+
+  doc = PARSE(inconsistent, CMARK_OPT_INDENTED_HTML_BLOCKS);
+  html = doc->first_child;
+  INT_EQ(runner, cmark_node_get_type(html->next), CMARK_NODE_PARAGRAPH,
+         "indented HTML: shallower indentation terminates the block");
+  cmark_node_free(doc);
+
+  static const char unindented[] =
+      "<div>\n"
+      "content\n"
+      "\n"
+      "more\n";
+
+  doc = PARSE(unindented, CMARK_OPT_INDENTED_HTML_BLOCKS);
+  html = doc->first_child;
+  OK(runner, html->next != NULL,
+     "indented HTML: unindented content still ends at a blank line");
+  cmark_node_free(doc);
+
+  static const char custom_element[] =
+      "<slide-diagram>\n"
+      "  first\n"
+      "\n"
+      "    nested\n"
+      "</slide-diagram>\n";
+
+  doc = PARSE(custom_element, CMARK_OPT_INDENTED_HTML_BLOCKS);
+  html = doc->first_child;
+  STR_EQ(runner, cmark_node_get_literal(html), custom_element,
+         "indented HTML: type 7 blocks and deeper indentation are supported");
+  OK(runner, html->next == NULL,
+     "indented HTML: custom element remains one block");
+  cmark_node_free(doc);
+
+#undef PARSE
+}
+
 static void test_feed_across_line_ending(test_batch_runner *runner) {
   // See #117
   cmark_parser *parser = cmark_parser_new(CMARK_OPT_DEFAULT);
@@ -1487,6 +1585,7 @@ int main() {
   test_cplusplus(runner);
   test_safe(runner);
   test_front_matter(runner);
+  test_indented_html_blocks(runner);
   test_feed_across_line_ending(runner);
   test_pathological_regressions(runner);
   source_pos(runner);
