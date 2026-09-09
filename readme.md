@@ -25,6 +25,8 @@ Compared with GitHub's `cmark-gfm`, CMarkly:
   as `CMARK_NODE_FRONT_MATTER` nodes.
 - Supports opt-in language prefixes for inline code, such as `` ruby:`Object.new` ``,
   through `CMARK_OPT_INLINE_CODE_INFO` and the code-info accessors.
+- Supports opt-in blank lines within consistently indented HTML content through
+  `CMARK_OPT_HTML_BLOCK_BLANK_LINES`.
 - Provides `cmark_node_clone` for independently cloning complete node trees,
   including supported extension metadata and footnote relationships. User data
   is intentionally not copied.
